@@ -10,10 +10,17 @@ using namespace std;
 
 int main()
 {      
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+
+
     dataAirport airport;
     database_airport db;
     int choice;
     bool menu = true;
+
+    /*db.create_table();*/
+
     while (menu)
     {   
         system("cls");
@@ -36,6 +43,7 @@ int main()
         {
             cout << "Таблица:" << endl;
             db.output_airport();
+            system("pause");
             break;
 
         }
@@ -43,7 +51,8 @@ int main()
         {
             cout << "Добавить запись" << endl;
             airport.input();
-            db.input_airport(airport);
+            db.addData(airport);
+            cout << "Запись успешно записана!" << endl; system("pause");
             break;
         }
         case 3:
@@ -54,7 +63,8 @@ int main()
             for (int i = 0; i <= n; i++)
             {
                 airport.input();
-                db.input_airport(airport);
+                db.addData(airport);
+                system("pause");
             }
 
             break;
