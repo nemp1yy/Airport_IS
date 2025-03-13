@@ -9,23 +9,26 @@
 using namespace std;
 
 int main()
-{      
+{   
+    HWND consoleWindow = GetConsoleWindow();   
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
+    SetConsoleTitle("ИС \"Аэрофлот\"");
 
 
     dataAirport airport;
     database_airport db;
     int choice;
+    int input_id;
     bool menu = true;
 
-    /*db.create_table();*/
+    db.create_table();
 
     while (menu)
     {   
         system("cls");
 
-        cout << "ИС \"Аэрофлот\". Главное меню" << endl;
+        cout << "Главное меню" << endl;
         cout << "1. Показать таблицу" << endl;
         cout << "2. Добавить запись" << endl;
         cout << "3. Добавить несколько записей" << endl;
@@ -40,9 +43,24 @@ int main()
         switch (choice)
         {
         case 1:
-        {
-            cout << "Таблица:" << endl;
-            db.output_airport();
+        {   
+            MoveWindow(consoleWindow, 100, 100, 800, 1000, TRUE);
+            system("cls");
+            cout << left 
+                 << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            cout << "| " << left << setw(5) << "ID" 
+                 << " | " << left << setw(6) << "Рейс" 
+                 << " | " << left << setw(19) << "Авиакомпания" 
+                 << " | " << left << setw(16) << "Откуда вылет" 
+                 << " | " << left << setw(17) << "Пункт назначения"
+                 << " | " << left << setw(17) << "Вылет в" 
+                 << " | " << left << setw(17) << "Прибывает в" 
+                 << " | " << left << setw(4) << "Гейт" 
+                 << " | " << left << setw(14) << "Статус" 
+                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            db.getData(); 
+            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
             system("pause");
             break;
 
@@ -52,7 +70,7 @@ int main()
             cout << "Добавить запись" << endl;
             airport.input();
             db.addData(airport);
-            cout << "Запись успешно записана!" << endl; system("pause");
+
             break;
         }
         case 3:
@@ -70,16 +88,46 @@ int main()
             break;
         }
         case 4:
-        {   
-            int input_id;
-            cout << "Поиск" << endl;
-            
-            cout << "Введите id для поиска:"; cin >> input_id;
+        {
+            cout << "Введите id для обновления данных: "; cin >> input_id;
+            airport.input();
+            db.updateData(airport, input_id);
             break;
         }
         case 5:
+        {
+            cout << "Введите id для удаления: "; cin >> input_id;
+            db.deleteData(input_id);
+            break;
+
+        }
+
+        case 6:
         {   
-            system("cls"); cout << "Удачи!"; system("pause");
+            cout << "Поиск" << endl;
+            
+            cout << "Введите id для поиска: "; cin >> input_id;
+            cout << left 
+                 << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            cout << "| " << left << setw(5) << "ID" 
+                 << " | " << left << setw(6) << "Рейс" 
+                 << " | " << left << setw(19) << "Авиакомпания" 
+                 << " | " << left << setw(16) << "Откуда вылет" 
+                 << " | " << left << setw(17) << "Пункт назначения"
+                 << " | " << left << setw(17) << "Вылет в" 
+                 << " | " << left << setw(17) << "Прибывает в" 
+                 << " | " << left << setw(4) << "Гейт" 
+                 << " | " << left << setw(14) << "Статус" 
+                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            db.searchData(input_id);
+            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+            system("pause");
+            break;
+        }
+        case 7:
+        {   
+            system("cls"); cout << "Удачи!" << endl; system("pause");
             db.close_database();
             menu = false;
             break;

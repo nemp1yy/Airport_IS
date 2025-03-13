@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include "sqlite3.h"
 #include "airport.h"
+#include "convert_string.h"
 
 class database_airport
     {
@@ -25,7 +26,7 @@ class database_airport
 
         void create_table()
         {
-            const char *sql = "CREATE TABLE IF NOT EXISTS flights (id INTEGER PRIMARY KEY, terminal INTEGER NOT NULL, bagBelt INTEGER , departute_time DATETIME NOT NULL, arrival_time DATETIME NOT NULL, status TEXT NOT NULL, aircraft_type TEXT NOT NULL, airline TEXT NOT NULL, flight TEXT NOT NULL, departure_from TEXT NOT NULL, destination TEXT NOT NULL, gate TEXT NOT NULL);";
+            const char *sql = "CREATE TABLE IF NOT EXISTS flights (id INTEGER PRIMARY KEY, departure_time DATETIME NOT NULL, arrival_time DATETIME NOT NULL, status TEXT NOT NULL, aircraft_type TEXT NOT NULL, airline TEXT NOT NULL, flight TEXT NOT NULL, departure_from TEXT NOT NULL, destination TEXT NOT NULL, gate TEXT NOT NULL);";
             if (sqlite3_exec(db, sql, 0, 0, &errMsg) != SQLITE_OK) {
                 std::cerr << "SQL error: " << errMsg << std::endl;
                 sqlite3_free(errMsg);
@@ -34,40 +35,37 @@ class database_airport
             }
         }
 
-        // void insert_airport(dataAirport airport)
-        // {
-        //             const char *insert_sql = "INSERT INTO flights (terminal, bagBelt, departute_time, arrival_time, status, aircraft_type, airline, flight, departure_from, destination, gate) VALUES (?,?,?,?,?,?,?,?,?,?,?);";
-        //     if (sqlite3_exec(db, insert_sql, 0, 0, &errMsg) != SQLITE_OK) {
-        //         std::cerr << "SQL error: " << errMsg << std::endl;
-        //         sqlite3_free(errMsg);
-        //     } else {
-        //         std::cout << "Data inserted successfully!" << std::endl;
-        //     }
-        // }
 
         bool addData(dataAirport flight) {
-            const char* sql = "INSERT INTO flights (terminal, bagBelt, departure_time, arrival_time, status, aircraft_type, airline, flight, departure_from, destination, gate) "
-                              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-        
+            const char* sql = "INSERT INTO flights (departure_time, arrival_time, status, aircraft_type, airline, flight, departure_from, destination, gate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
             sqlite3_stmt* stmt;
             int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
             if (rc != SQLITE_OK) {
-                std::cerr << "Ошибка подготовки SQL-запроса: " << sqlite3_errmsg(db) << std::endl;
+                std::cerr << "Ошибка подготовки запроса: " << sqlite3_errmsg(db) << std::endl;
                 return false;
             }
         
+            auto safe_convert_utf = [](const string& text) -> string {
+                string utf8_text = convertTo_utf8(text);
+                if (utf8_text.empty()) {
+                    cerr << "Ошибка конвертации текста: " << text << endl;
+                    return "";
+                }
+                return utf8_text;
+            };
+            
+
             // Привязка параметров
-            sqlite3_bind_int(stmt, 1, flight.getTerminal());
-            sqlite3_bind_int(stmt, 2, flight.getBagBelt());
-            sqlite3_bind_text(stmt, 3, flight.getDeparture_time().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 4, flight.getArrival_time().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 5, flight.getStatus().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 6, flight.getAircraft_type().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 7, flight.getAirline().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 8, flight.getFlight().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 9, flight.getDeparture_from().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 10, flight.getDestination().c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, 11, flight.getGate().c_str(), -1, SQLITE_STATIC);
+            sqlite3_bind_text(stmt, 1, safe_convert_utf(flight.getDeparture_time()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, safe_convert_utf(flight.getArrival_time()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 3, safe_convert_utf(flight.getStatus()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 4, safe_convert_utf(flight.getAircraft_type()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 5, safe_convert_utf(flight.getAirline()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 6, safe_convert_utf(flight.getFlight()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 7, safe_convert_utf(flight.getDeparture_from()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 8, safe_convert_utf(flight.getDestination()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 9, safe_convert_utf(flight.getGate()).c_str(), -1, SQLITE_TRANSIENT);
         
             // Выполнение запроса
             rc = sqlite3_step(stmt);
@@ -77,71 +75,100 @@ class database_airport
                 return false;
             }
         
-            // Завершение работы с выражением
             sqlite3_finalize(stmt);
             return true;
         }
         
-        void update_airport(dataAirport airport, int id)
+        
+        bool updateData(dataAirport flight, int id)
         {
-            const char *update_sql = "UPDATE flights SET terminal=?, bagBelt=?, departute_time=?, arrival_time=?, status=?, aircraft_type=?, airline=?, flight=?, departure_from=?, destination=?, gate=? WHERE id=?;";
-            if (sqlite3_exec(db, update_sql, 0, 0, &errMsg) != SQLITE_OK) {
-                std::cerr << "SQL error: " << errMsg << std::endl;
-                sqlite3_free(errMsg);
-            } else {
-                std::cout << "Data updated successfully!" << std::endl;
+            const char *sql = "UPDATE flights SET, departute_time=?, arrival_time=?, status=?, aircraft_type=?, airline=?, flight=?, departure_from=?, destination=?, gate=? WHERE id=?;";
+
+            sqlite3_stmt* stmt;
+            int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+            if (rc != SQLITE_OK) {
+                std::cerr << "Ошибка подготовки запроса: " << sqlite3_errmsg(db) << std::endl;
+                return false;
             }
+        
+            auto safe_convert_utf = [](const string& text) -> string {
+                string utf8_text = convertTo_utf8(text);
+                if (utf8_text.empty()) {
+                    cerr << "Ошибка конвертации текста: " << text << endl;
+                    return "";
+                }
+                return utf8_text;
+            };
+            
+
+            sqlite3_bind_text(stmt, 1, safe_convert_utf(flight.getDeparture_time()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, safe_convert_utf(flight.getArrival_time()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 3, safe_convert_utf(flight.getStatus()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 4, safe_convert_utf(flight.getAircraft_type()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 5, safe_convert_utf(flight.getAirline()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 6, safe_convert_utf(flight.getFlight()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 7, safe_convert_utf(flight.getDeparture_from()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 8, safe_convert_utf(flight.getDestination()).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 9, safe_convert_utf(flight.getGate()).c_str(), -1, SQLITE_TRANSIENT);
+        
+            // Выполнение запроса
+            rc = sqlite3_step(stmt);
+            if (rc != SQLITE_DONE) {
+                std::cerr << "Ошибка выполнения SQL-запроса: " << sqlite3_errmsg(db) << std::endl;
+                sqlite3_finalize(stmt);
+                return false;
+            }
+        
+            sqlite3_finalize(stmt);
+            return true;
         }
 
-        void delete_airport(int id)
+        void deleteData(int id)
         {
-            const char *delete_sql = "DELETE FROM flights WHERE id=?;";
-            if (sqlite3_exec(db, delete_sql, 0, 0, &errMsg) != SQLITE_OK) {
-                std::cerr << "SQL error: " << errMsg << std::endl;
-                sqlite3_free(errMsg);
-            } else {
-                std::cout << "Data deleted successfully!" << std::endl;
+            const char *sql = "DELETE FROM flights WHERE id=?";
+            sqlite3_stmt *stmt;
+            if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) {
+                cerr << "SQL error: " << sqlite3_errmsg(db)
+                        << std::endl;
+                return;
             }
+
+            sqlite3_bind_int(stmt, 1, id);
+            sqlite3_step(stmt);
+            sqlite3_finalize(stmt);
         }
 
-        // void find_airport(int id)
-        // {
-        //     const char *select_sql = "SELECT * FROM flights WHERE id=?;";
-        //     sqlite3_stmt *stmt;
-        //     if (sqlite3_prepare_v2(db, select_sql, -1, &stmt, 0) != SQLITE_OK) {
-        //         std::cerr << "SQL error: " << sqlite3_errmsg(db) << std::endl;
-        //         return;
-        //     }
-        //     sqlite3_bind_int(stmt, 1, id);
-        //     int rc = sqlite3_step(stmt);
-        //     if (rc == SQLITE_ROW) {
-        //         dataAirport airport;
+        void searchData(int id)
+        {
+            dataAirport data;
+            const char *sql = "SELECT * FROM flights WHERE id=?";
+            sqlite3_stmt *stmt;
+            if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) {
+                cerr << "SQL error: " << sqlite3_errmsg(db)
+                        << std::endl;
+                return;
+            }
+
+            sqlite3_bind_int(stmt, 1, id);
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                data.setId(sqlite3_column_int(stmt, 0));
+                data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+                data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+                data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+                data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+                data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
+                data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+                data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
+                data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
+                data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
+
+                data.output_convert();
+            }
+            sqlite3_finalize(stmt);
+        }
 
         void getData()
         {
-            // const char *select_sql = "SELECT * FROM flights;";
-            // sqlite3_stmt *stmt;
-            // if (sqlite3_prepare_v2(db, select_sql, -1, &stmt, 0) != SQLITE_OK) {
-            //     std::cerr << "SQL error: " << sqlite3_errmsg(db) << std::endl;
-            //     return;
-            // }
-            // while (sqlite3_step(stmt) == SQLITE_ROW) {
-            //     int id = sqlite3_column_int(stmt, 0);
-            //     int terminal = sqlite3_column_int(stmt, 1);
-            //     int bagBelt = sqlite3_column_int(stmt, 2);
-            //     const char *departute_time = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-            //     const char *arrival_time = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-            //     const char *status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
-            //     const char *aircraft_type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
-            //     const char *airline = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7));
-            //     const char *flight = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8));
-            //     const char *departure_from = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9));
-            //     const char *destination = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));
-            //     const char *gate = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11));
-
-            //     cout << left << setw(10) << id << setw(10) << terminal << setw(10) << bagBelt << setw(20) << departute_time << setw(20) << arrival_time << setw(10) << status << setw(20) << aircraft_type << setw(20) << airline << setw(20) << flight << setw(20) << departure_from << setw(20) << destination << setw(20) << gate << endl;
-            // }
-            // sqlite3_finalize(stmt);
 
             dataAirport data;
             const char *sql = "SELECT * FROM flights";
@@ -151,19 +178,20 @@ class database_airport
                         << std::endl;
                 return;
             }
+
             while (sqlite3_step(stmt) == SQLITE_ROW) {
-                data.setTerminal(sqlite3_column_int(stmt, 1));
-                data.setBagBelt(sqlite3_column_int(stmt, 2));
-                data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
-                data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
-                data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
-                data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
-                data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
-                data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
-                data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
-                data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10)));
-                data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 11)));
-                data.output();
+                data.setId(sqlite3_column_int(stmt, 0));
+                data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+                data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+                data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+                data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+                data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
+                data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+                data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
+                data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
+                data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
+
+                data.output_convert();
             }
             sqlite3_finalize(stmt);
         }

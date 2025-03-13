@@ -8,6 +8,7 @@
 #include <array>
 #include <chrono>
 #include <sstream>
+#include "convert_string.h"
 
 
 using namespace std;
@@ -17,8 +18,6 @@ class dataAirport
 {
     private:
         int id;
-        int terminal;
-        int bagBelt;
         string departure_time;
         string arrival_time;
         array<string, 3> airport_Status = { "По расписанию", "Задержан", "Отменен" };
@@ -42,8 +41,6 @@ class dataAirport
             gate = "n/a";
             status = airport_Status[0];
             aircraft_type = "n/a";
-            terminal = 0;
-            bagBelt = 0;
         }
     
 
@@ -52,11 +49,11 @@ class dataAirport
         int var;
 
         cout << "Рейс: "; cin >> flight;
-        cout << "Авиакомпания: "; cin >> airline;
+        
+        cin.get(); cout << "Авиакомпания: "; getline(cin, airline);
         cout << "Откуда вылет: "; cin >> departure_from;
         cout << "Пункт назначения: "; cin >> destination;
-        cin.get();
-        cout << "Вылет в: "; getline(cin, departure_time);
+        cin.get(); cout << "Вылет в: "; getline(cin, departure_time);
         cout << "Прибывает в: "; getline(cin, arrival_time);
         cout << "Гейт: "; cin >> gate;
         cout << "Статус: " << endl 
@@ -64,29 +61,40 @@ class dataAirport
              << " 2. Задержан" << endl
              << " 3. Отменен" << endl
              << "Ваш вариант: "; cin >> var; status = airport_Status[var-1];
-        cin.get();
-        cout << "Тип BC: "; getline(cin, aircraft_type);
-        cout << "Терминал: "; cin >> terminal;
-        cout << "Багажная лента: "; cin >> bagBelt;
+        cin.get(); cout << "Тип BC: "; getline(cin, aircraft_type);
 
     }
 
     void output()
     {
-        cout << left << setw(10) << "Рейс: " << flight << endl
-             << left << setw(10) << "Авиакомпания: " << airline << endl
-             << left << setw(10) << "Откуда вылет: " << departure_from << endl
-             << left << setw(10) << "Пункт назначения:" << destination << endl
-             << left << setw(10) << "Вылет в: " << departure_time << endl
-             << left << setw(10) << "Прибывает в:" << arrival_time << endl
-             << left << setw(10) << "Гейт: " << gate << endl
-             << left << setw(10) << "Статус: " << status << endl
-             << left << setw(10) << "Тип BC: " << aircraft_type << endl
-             << left << setw(10) << "Терминал: " << terminal << endl
-             << left << setw(10) << "Багажная лента: " << bagBelt << endl;
+        cout << left << setw(8) << flight
+             << left << setw(20) << airline
+             << left << setw(15) << departure_from
+             << left << setw(15) << destination
+             << left << setw(15) << departure_time
+             << left << setw(15) << arrival_time
+             << left << setw(15) << gate
+             << left << setw(15) << status
+             << left << setw(15) << aircraft_type << endl;
     }
 
+    void output_convert()
+    {
 
+        cout << "| " << setw(5) << id
+             << " | " << setw(7) << convertTo_1251(flight)
+             << " | " << setw(20) << convertTo_1251(airline)
+             << " | " << setw(17) << convertTo_1251(departure_from)
+             << " | " << setw(18) << convertTo_1251(destination)
+             << " | " << setw(18) << convertTo_1251(departure_time)
+             << " | " << setw(18) << convertTo_1251(arrival_time)
+             << " | " << setw(5) << convertTo_1251(gate)
+             << " | " << setw(15) << convertTo_1251(status)
+             << " | " << setw(15) << convertTo_1251(aircraft_type) << "|" << endl;
+    
+    }
+   
+    string getId() { return to_string(id); }
     string getFlight() { return flight; }
     string getAirline() { return airline; }
     string getDeparture_from() { return departure_from; }
@@ -96,9 +104,8 @@ class dataAirport
     string getGate() { return gate; }
     string getStatus() { return status; }
     string getAircraft_type() { return aircraft_type; }
-    int getTerminal() { return terminal; }
-    int getBagBelt() { return bagBelt; }
 
+    void setId(int id) { this->id = id; }
     void setFlight(string flight) { this->flight = flight; }
     void setAirline(string airline) { this->airline = airline; }
     void setDeparture_from(string departure_from) { this->departure_from = departure_from; }
@@ -108,8 +115,6 @@ class dataAirport
     void setGate(string gate) { this->gate = gate; }
     void setStatus(string status) { this->status = status; }
     void setAircraft_type(string aircraft_type) { this->aircraft_type = aircraft_type; }
-    void setTerminal(int terminal) { this->terminal = terminal; }
-    void setBagBelt(int bagBelt) { this->bagBelt = bagBelt; }
 
     void setAll(string flight, string airline, string departure_from, string destination, string departure_time, string arrival_time, string gate, string status, string aircraft_type, int terminal, int bagBelt)
     {
@@ -122,8 +127,6 @@ class dataAirport
         this->gate = gate;  
         this->status = status;
         this->aircraft_type = aircraft_type;
-        this->terminal = terminal;
-        this->bagBelt = bagBelt;
     }
 
 };
