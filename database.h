@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include "sqlite3.h"
 #include "airport.h"
-#include "convert_string.h"
+#include "utils.h"
 
 class database_airport
     {
@@ -42,21 +42,19 @@ class database_airport
             sqlite3_stmt* stmt;
             int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
             if (rc != SQLITE_OK) {
-                std::cerr << "Ошибка подготовки запроса: " << sqlite3_errmsg(db) << std::endl;
+                std::cerr << "Cannot be insert into table: " << sqlite3_errmsg(db) << std::endl;
                 return false;
             }
         
             auto safe_convert_utf = [](const string& text) -> string {
                 string utf8_text = convertTo_utf8(text);
                 if (utf8_text.empty()) {
-                    cerr << "Ошибка конвертации текста: " << text << endl;
+                    cerr << "Error: " << text << endl;
                     return "";
                 }
                 return utf8_text;
             };
             
-
-            // Привязка параметров
             sqlite3_bind_text(stmt, 1, safe_convert_utf(flight.getDeparture_time()).c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 2, safe_convert_utf(flight.getArrival_time()).c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 3, safe_convert_utf(flight.getStatus()).c_str(), -1, SQLITE_TRANSIENT);
@@ -67,10 +65,9 @@ class database_airport
             sqlite3_bind_text(stmt, 8, safe_convert_utf(flight.getDestination()).c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 9, safe_convert_utf(flight.getGate()).c_str(), -1, SQLITE_TRANSIENT);
         
-            // Выполнение запроса
             rc = sqlite3_step(stmt);
             if (rc != SQLITE_DONE) {
-                std::cerr << "Ошибка выполнения SQL-запроса: " << sqlite3_errmsg(db) << std::endl;
+                std::cerr << "Error: " << sqlite3_errmsg(db) << std::endl;
                 sqlite3_finalize(stmt);
                 return false;
             }
@@ -87,14 +84,14 @@ class database_airport
             sqlite3_stmt* stmt;
             int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
             if (rc != SQLITE_OK) {
-                std::cerr << "Ошибка подготовки запроса: " << sqlite3_errmsg(db) << std::endl;
+                std::cerr << "Error: " << sqlite3_errmsg(db) << std::endl;
                 return false;
             }
         
             auto safe_convert_utf = [](const string& text) -> string {
                 string utf8_text = convertTo_utf8(text);
                 if (utf8_text.empty()) {
-                    cerr << "Ошибка конвертации текста: " << text << endl;
+                    cerr << "Error: " << text << endl;
                     return "";
                 }
                 return utf8_text;
@@ -111,10 +108,9 @@ class database_airport
             sqlite3_bind_text(stmt, 8, safe_convert_utf(flight.getDestination()).c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(stmt, 9, safe_convert_utf(flight.getGate()).c_str(), -1, SQLITE_TRANSIENT);
         
-            // Выполнение запроса
             rc = sqlite3_step(stmt);
             if (rc != SQLITE_DONE) {
-                std::cerr << "Ошибка выполнения SQL-запроса: " << sqlite3_errmsg(db) << std::endl;
+                std::cerr << "Error: " << sqlite3_errmsg(db) << std::endl;
                 sqlite3_finalize(stmt);
                 return false;
             }

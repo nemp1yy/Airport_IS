@@ -11,6 +11,7 @@ using namespace std;
 int main()
 {   
     HWND consoleWindow = GetConsoleWindow();   
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     SetConsoleTitle("ИС \"Аэрофлот\"");
@@ -26,7 +27,17 @@ int main()
 
     while (menu)
     {   
+        COORD bufferSize = {640, 320};
+        SetConsoleScreenBufferSize(hConsole, bufferSize);
+        SMALL_RECT windowSize = {0, 0, 640, 320};
+
         system("cls");
+
+        if (!SetConsoleWindowInfo(hConsole, TRUE, &windowSize)) {
+            std::cout << "Ошибка изменения размера окна. Код ошибки: " << GetLastError() << std::endl;
+        }
+
+        else cout << endl;
 
         cout << "Главное меню" << endl;
         cout << "1. Показать таблицу" << endl;
@@ -44,7 +55,16 @@ int main()
         {
         case 1:
         {   
-            MoveWindow(consoleWindow, 100, 100, 800, 1000, TRUE);
+            COORD bufferSize = {320, 768};
+            SetConsoleScreenBufferSize(hConsole, bufferSize);
+            SMALL_RECT windowSize = {0, 0, 640, 768};
+
+            system("cls");
+
+            if (!SetConsoleWindowInfo(hConsole, TRUE, &windowSize)) {
+                std::cout << "Ошибка изменения размера окна. Код ошибки: " << GetLastError() << std::endl;
+            }
+
             system("cls");
             cout << left 
                  << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
@@ -67,9 +87,36 @@ int main()
         }
         case 2:
         {
-            cout << "Добавить запись" << endl;
-            airport.input();
+            COORD bufferSize = {320, 768};
+            SetConsoleScreenBufferSize(hConsole, bufferSize);
+            SMALL_RECT windowSize = {0, 0, 640, 768};
+
+            system("cls");
+
+            if (!SetConsoleWindowInfo(hConsole, TRUE, &windowSize)) {
+                std::cout << "Ошибка изменения размера окна. Код ошибки: " << GetLastError() << std::endl;
+            }
+
+            else cout << endl;
+
+            cout << left 
+                 << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            cout << "| " << left << setw(6) << "Рейс" 
+                 << " | " << left << setw(19) << "Авиакомпания" 
+                 << " | " << left << setw(16) << "Откуда вылет" 
+                 << " | " << left << setw(17) << "Пункт назначения"
+                 << " | " << left << setw(17) << "Вылет в" 
+                 << " | " << left << setw(17) << "Прибывает в" 
+                 << " | " << left << setw(4) << "Гейт" 
+                 << " | " << left << setw(14) << "Статус" 
+                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+            cout << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            
+            airport.input_table(0); 
+            
+            cout << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
             db.addData(airport);
+            system("pause");
 
             break;
         }
@@ -78,13 +125,29 @@ int main()
             int n;
 
             cout << "Кол-во записей, который будут добавлены: "; cin >> n;
+
+            cout << endl << left 
+                 << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            cout << "| " << left << setw(6) << "Рейс" 
+                 << " | " << left << setw(19) << "Авиакомпания" 
+                 << " | " << left << setw(16) << "Откуда вылет" 
+                 << " | " << left << setw(17) << "Пункт назначения"
+                 << " | " << left << setw(17) << "Вылет в" 
+                 << " | " << left << setw(17) << "Прибывает в" 
+                 << " | " << left << setw(4) << "Гейт" 
+                 << " | " << left << setw(14) << "Статус" 
+                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+
             for (int i = 0; i <= n; i++)
             {
-                airport.input();
+                airport.input_table(i);
                 db.addData(airport);
-                system("pause");
+                cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+                
             }
 
+            cout << endl; system("pause");
             break;
         }
         case 4:
