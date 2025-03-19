@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include "airport.h"
 #include "database.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -128,7 +129,7 @@ int main()
 
             cout << endl << left 
                  << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-            cout << "| " << left << setw(6) << "Рейс" 
+            cout << "| " << left << setw(7) << "Рейс" 
                  << " | " << left << setw(19) << "Авиакомпания" 
                  << " | " << left << setw(16) << "Откуда вылет" 
                  << " | " << left << setw(17) << "Пункт назначения"
@@ -167,9 +168,22 @@ int main()
 
         case 6:
         {   
+            string flight, airline, departure_from, destination, departure_time_range1, departure_time_range2, arrival_time_range1, arrival_time_range2, gate, status, aircraft_type;
+
             cout << "Поиск" << endl;
+            system("pause");
+            system("cls");
+            cout << "Введите " << endl;
+            cout << "Рейс: "; cin >> flight;
+            cout << "Авиакомпания: "; cin >> airline;
+            cout << "Откуда вылет: "; cin >> departure_from;
+            cout << "Пункт назначения: "; cin >> destination;
+            cout << "Время вылета (от): "; cin >> departure_time_range1; gotoxy(35, 5); cout << "Время вылета (до): "; cin >> departure_time_range2;
+            cout << "Время прибытия (от): "; cin >> arrival_time_range1; gotoxy(35, 6); cout << "Время прибытия (до): "; cin >> arrival_time_range2;
+            cout << "Гейт: "; cin >> gate;
+            cout << "Статус: "; cin >> status;
+            cout << "Тип BC: "; cin >> aircraft_type;
             
-            cout << "Введите id для поиска: "; cin >> input_id;
             cout << left 
                  << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
             cout << "| " << left << setw(5) << "ID" 
@@ -183,7 +197,7 @@ int main()
                  << " | " << left << setw(14) << "Статус" 
                  << " | " << left << setw(13) << "Тип BC" << " | " << endl;
             cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-            db.searchData(input_id);
+            db.searchData(flight, airline, departure_from, destination, departure_time_range1, departure_time_range2, arrival_time_range1, arrival_time_range2, gate, status, aircraft_type);
             cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
             system("pause");
             break;
