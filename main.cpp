@@ -17,7 +17,17 @@ int main()
     SetConsoleOutputCP(1251);
     SetConsoleTitle("ИС \"Аэрофлот\"");
 
-
+    string flight, 
+           airline, 
+           departure_from, 
+           destination, 
+           departure_time_range1, 
+           departure_time_range2, 
+           arrival_time_range1, 
+           arrival_time_range2, 
+           gate, 
+           status, 
+           aircraft_type;
     dataAirport airport;
     database_airport db;
     int choice;
@@ -47,7 +57,8 @@ int main()
         cout << "4. Обновить запись" << endl;
         cout << "5. Удалить запись" << endl;
         cout << "6. Поиск" << endl;
-        cout << "7. Выход" << endl;
+        cout << "7. О программе" << endl;
+        cout << "8. Выход" << endl;
         cout << "Выберите пункт меню: "; cin >> choice;
 
         system("cls");
@@ -67,21 +78,9 @@ int main()
             }
 
             system("cls");
-            cout << left 
-                 << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-            cout << "| " << left << setw(5) << "ID" 
-                 << " | " << left << setw(6) << "Рейс" 
-                 << " | " << left << setw(19) << "Авиакомпания" 
-                 << " | " << left << setw(16) << "Откуда вылет" 
-                 << " | " << left << setw(17) << "Пункт назначения"
-                 << " | " << left << setw(17) << "Вылет в" 
-                 << " | " << left << setw(17) << "Прибывает в" 
-                 << " | " << left << setw(4) << "Гейт" 
-                 << " | " << left << setw(14) << "Статус" 
-                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
-            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            
             db.getData(); 
-            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+            
             system("pause");
             break;
 
@@ -159,20 +158,13 @@ int main()
             break;
         }
         case 5:
-        {
-            cout << "Введите id для удаления: "; cin >> input_id;
-            db.deleteData(input_id);
-            break;
-
-        }
-
-        case 6:
         {   
-            string flight, airline, departure_from, destination, departure_time_range1, departure_time_range2, arrival_time_range1, arrival_time_range2, gate, status, aircraft_type;
+            
+            cout << "Удаление записи" << endl
+                << "----------------------------" << endl; system("pause");
 
-            cout << "Поиск" << endl;
-            system("pause");
             system("cls");
+
             cout << "Введите " << endl;
             cout << "Рейс: "; cin >> flight;
             cout << "Авиакомпания: "; cin >> airline;
@@ -183,26 +175,49 @@ int main()
             cout << "Гейт: "; cin >> gate;
             cout << "Статус: "; cin >> status;
             cout << "Тип BC: "; cin >> aircraft_type;
+
+
+            db.deleteData(flight, airline, departure_from, destination, departure_time_range1, departure_time_range2, arrival_time_range1, arrival_time_range2, gate, status, aircraft_type);
+            system("pause");
+            break;
+
+        }
+
+        case 6:
+        {   
+            cout << "Поиск" << endl;
+            system("pause");
+            system("cls");
+
+            cout << "Введите " << endl;
+            cout << "Рейс: "; cin >> flight;
+            cout << "Авиакомпания: "; cin >> airline;
+            cout << "Откуда вылет: "; cin >> departure_from;
+            cout << "Пункт назначения: "; cin >> destination;
+            cout << "Время вылета (от): "; cin >> departure_time_range1; gotoxy(35, 5); cout << "Время вылета (до): "; cin >> departure_time_range2;
+            cout << "Время прибытия (от): "; cin >> arrival_time_range1; gotoxy(35, 6); cout << "Время прибытия (до): "; cin >> arrival_time_range2;
+            cout << "Гейт: "; cin >> gate;
+            cout << "Статус: "; cin >> status;
+            cout << "Тип BC: "; cin >> aircraft_type;
+
+            system("cls");
             
-            cout << left 
-                 << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-            cout << "| " << left << setw(5) << "ID" 
-                 << " | " << left << setw(6) << "Рейс" 
-                 << " | " << left << setw(19) << "Авиакомпания" 
-                 << " | " << left << setw(16) << "Откуда вылет" 
-                 << " | " << left << setw(17) << "Пункт назначения"
-                 << " | " << left << setw(17) << "Вылет в" 
-                 << " | " << left << setw(17) << "Прибывает в" 
-                 << " | " << left << setw(4) << "Гейт" 
-                 << " | " << left << setw(14) << "Статус" 
-                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
-            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
             db.searchData(flight, airline, departure_from, destination, departure_time_range1, departure_time_range2, arrival_time_range1, arrival_time_range2, gate, status, aircraft_type);
-            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
             system("pause");
             break;
         }
+
         case 7:
+        {
+            cout << "Информационная система \"Аэрофлот\" " << endl
+                << "Автор: Свинухов Александр" << endl
+                << "--------------------------------------" << endl << endl;
+
+            system("pause");
+            break;
+        }
+
+        case 8:
         {   
             system("cls"); cout << "Удачи!" << endl; system("pause");
             db.close_database();

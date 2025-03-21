@@ -114,9 +114,8 @@ class dataAirport
 
     void output_convert()
     {
-
-        cout << "| " << setw(5) << id
-             << " | " << setw(7) << convertTo_1251(flight)
+            cout 
+             << "| " << setw(7) << convertTo_1251(flight)
              << " | " << setw(20) << convertTo_1251(airline)
              << " | " << setw(17) << convertTo_1251(departure_from)
              << " | " << setw(18) << convertTo_1251(destination)
@@ -127,7 +126,6 @@ class dataAirport
              << " | " << setw(15) << convertTo_1251(aircraft_type) << "|" << endl;
     
     }
-   
     string getId() { return to_string(id); }
     string getFlight() { return flight; }
     string getAirline() { return airline; }
