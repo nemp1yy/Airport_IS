@@ -89,15 +89,15 @@ class dataAirport
     void input_table(int count)
     {
         int var;
-        gotoxy(0,4+count); cout << "| "; cin.get(); cin >> flight;
-        gotoxy(9, 4+count); cout << " | "; cin.get(); getline(cin, airline);
-        gotoxy(31, 4+count); cout << " | "; cin >> departure_from;
-        gotoxy(50, 4+count); cout << " | "; cin >> destination;
-        gotoxy(70, 4+count); cout << " | "; cin.get(); getline(cin, departure_time);
-        gotoxy(90, 4+count); cout << " | "; cin.get(); getline(cin, arrival_time);
-        gotoxy(110, 4+count); cout << " | "; cin >> gate;
+        gotoxy(0,3+count); cout << "| "; cin.get(); cin >> flight;
+        gotoxy(9, 3+count); cout << "| "; cin.get(); getline(cin, airline);
+        gotoxy(31, 3+count); cout << "| "; cin >> departure_from;
+        gotoxy(50, 3+count); cout << "| "; cin >> destination;
+        gotoxy(70, 3+count); cout << "| "; cin.get(); getline(cin, departure_time);
+        gotoxy(90, 3+count); cout << "| "; cin.get(); getline(cin, arrival_time);
+        gotoxy(110, 3+count); cout << "| "; cin >> gate;
 
-        gotoxy(1, 8+count); cout << "Статус: " << endl 
+        gotoxy(1, 10+count); cout << "Статус: " << endl 
             << " 1. По рассписанию" << endl
             << " 2. Задержан" << endl
             << " 3. Отменен" << endl
@@ -113,9 +113,9 @@ class dataAirport
         }
     
         status = selectedStatus;
-        gotoxy(117, 4); cout << " | "; cout << status;
-        gotoxy(134, 4); cout << " | "; getline(cin, aircraft_type);
-        gotoxy(150, 4); cout << " | " << endl; 
+        gotoxy(117, 3+count); cout << "| "; cout << status; 
+        gotoxy(134, 3+count); cout << "| "; cin.get(); getline(cin, aircraft_type);
+        gotoxy(150, 3+count); cout << "| " << endl; 
     }
 
 

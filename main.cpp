@@ -83,13 +83,14 @@ int main()
             cout << "Кол-во записей, который будут добавлены: "; cin >> n; system("cls");
 
             airport.table_header();
-            for (int i = 0; i <= n; i++)
+            for (int i = 0; i < n; i++)
             {
                 airport.input_table(i);
                 db.addData(airport);
-                airport.table_footer();
                 
             }
+
+            airport.table_footer();
 
             cout << endl; system("pause");
             break;
@@ -105,7 +106,7 @@ int main()
         {   
             
             cout << "Удаление записи" << endl
-                << "----------------------------" << endl; cin.ignore(); system("cls");
+                << "----------------------------" << endl; system("pause"); system("cls");
             db.deleteData();
             system("pause");
             break;
