@@ -99,7 +99,7 @@ class database_airport
                 gotoxy(150, 3); cout << "| "; getline(cin, gate);
                 gotoxy(157, 3); cout << "| "; getline(cin, status);
                 gotoxy(174, 3); cout << "| "; getline(cin, aircraft_type);
-                gotoxy(187, 3); cout << "| " << endl; cin.ignore();
+                gotoxy(187, 3); cout << "| " << endl;
 
                 cout << "+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
 
@@ -491,20 +491,20 @@ class database_airport
 
         cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
         
-        // Предлагаем пользователю выбрать записи для удаления
         cout << "Введите номера записей, которые хотите удалить (через пробел), или '0' для отмены: ";
+        vector<int> selectedIndices;
         string input;
-        cin.ignore();
         getline(cin, input);
-        
-        if (input == "0") {
+
+        input.erase(0, input.find_first_not_of(" \t"));
+        input.erase(input.find_last_not_of(" \t") + 1);
+
+        if (input.empty() || input == "0") {
             cout << "Операция отменена." << endl;
             return;
         }
-        
-        // Парсим введенные номера
+
         istringstream iss(input);
-        vector<int> selectedIndices;
         int index;
         while (iss >> index) {
             if (index >= 1 && index <= static_cast<int>(foundRecords.size())) {
@@ -512,21 +512,6 @@ class database_airport
             } else {
                 cout << "Неверный номер: " << index << ". Игнорируется." << endl;
             }
-        }
-        
-        if (selectedIndices.empty()) {
-            cout << "Не выбрано ни одной действительной записи. Операция отменена." << endl;
-            return;
-        }
-        
-        // Запрашиваем подтверждение
-        cout << "Вы собираетесь удалить " << selectedIndices.size() << " записей. Подтвердите удаление (y/n): ";
-        cin.get();
-        getline(cin, input);
-        
-        if (input != "y" && input != "Y") {
-            cout << "Операция отменена." << endl;
-            return;
         }
         
         // Удаляем выбранные записи

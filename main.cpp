@@ -105,7 +105,7 @@ int main()
         {   
             
             cout << "Удаление записи" << endl
-                << "----------------------------" << endl; system("pause"); system("cls");
+                << "----------------------------" << endl; cin.ignore(); system("cls");
             db.deleteData();
             system("pause");
             break;
