@@ -66,6 +66,26 @@ class dataAirport
 
     }
 
+    void table_header()
+    {
+        cout << left 
+                 << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            cout << "| " << left << setw(6) << "Рейс" 
+                 << " | " << left << setw(19) << "Авиакомпания" 
+                 << " | " << left << setw(16) << "Откуда вылет" 
+                 << " | " << left << setw(17) << "Пункт назначения"
+                 << " | " << left << setw(17) << "Вылет в" 
+                 << " | " << left << setw(17) << "Прибывает в" 
+                 << " | " << left << setw(4) << "Гейт" 
+                 << " | " << left << setw(14) << "Статус" 
+                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+            cout << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+    }
+
+    void table_footer()
+    {
+        cout << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+    }
     void input_table(int count)
     {
         int var;
@@ -94,7 +114,7 @@ class dataAirport
     
         status = selectedStatus;
         gotoxy(117, 4); cout << " | "; cout << status;
-        gotoxy(134, 4); cout << " | "; cin >> aircraft_type;
+        gotoxy(134, 4); cout << " | "; getline(cin, aircraft_type);
         gotoxy(150, 4); cout << " | " << endl; 
     }
 
@@ -126,6 +146,7 @@ class dataAirport
              << " | " << setw(15) << convertTo_1251(aircraft_type) << "|" << endl;
     
     }
+
     string getId() { return to_string(id); }
     string getFlight() { return flight; }
     string getAirline() { return airline; }
