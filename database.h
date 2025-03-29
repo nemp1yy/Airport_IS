@@ -555,39 +555,39 @@ class database_airport
             vector<string> conditions;
     
             if (flight != "-")
-                conditions.push_back("LOWER(flight) LIKE LOWER(?) ESCAPE '\\'");
+                conditions.push_back("flight LIKE '%' || ? || '%'");
     
             if (airline != "-")
-                conditions.push_back("airline LIKE ?");
+                conditions.push_back("airline LIKE '%' || ? || '%'");
     
             if (departure_from != "-")
-                conditions.push_back("departure_from LIKE ?");
+                conditions.push_back("departure_from LIKE '%' || ? || '%'");
     
             if (destination != "-")
-                conditions.push_back("destination LIKE ?");
+                conditions.push_back("destination LIKE '%' || ? || '%'");
     
             if (departure_time_range1 != "-" && departure_time_range2 != "-")
-                conditions.push_back("departure_time BETWEEN ? AND ?");
+                conditions.push_back("departure_time BETWEEN ? AND ? ");
             else if (departure_time_range1 != "-")
                 conditions.push_back("departure_time >= ?");
             else if (departure_time_range2 != "-")
-                conditions.push_back("departure_time <= ?");
+                conditions.push_back("departure_time <= ? ");
     
             if (arrival_time_range1 != "-" && arrival_time_range2 != "-")
-                conditions.push_back("arrival_time BETWEEN ? AND ?");
+                conditions.push_back("arrival_time ? AND ? ");
             else if (arrival_time_range1 != "-")
-                conditions.push_back("arrival_time >= ?");
+                conditions.push_back("arrival_time >= ? ");
             else if (arrival_time_range2 != "-")
-                conditions.push_back("arrival_time <= ?");
+                conditions.push_back("arrival_time <= ? ");
     
             if (gate != "-")
-                conditions.push_back("gate LIKE ?");
+                conditions.push_back("gate LIKE '%' || ? || '%'");
     
             if (status != "-")
-                conditions.push_back("status LIKE ?");
+                conditions.push_back("status LIKE '%' || ? || '%'");
     
             if (aircraft_type != "-")
-                conditions.push_back("aircraft_type LIKE ?");
+                conditions.push_back("aircraft_type LIKE '%' || ? || '%'");
     
             // Добавляем условия в SQL-запрос
             for (const auto& condition : conditions) {
@@ -655,7 +655,9 @@ class database_airport
             if (aircraft_type != "-")
                 sqlite3_bind_text(stmt, paramIndex++, prepare_like(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
 
-            cout << "Запрос: " << sql << endl;
+                cout << "SQL Query: " << sql << endl;
+                cout << "Bound Parameter: [" << prepare_like(flight) << "]" << endl;
+                
 
                 cout << left 
                 << "+-----------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
@@ -669,7 +671,7 @@ class database_airport
                 << " | " << left << setw(14) << "Статус" 
                 << " | " << left << setw(13) << "Тип BC" << " | " << endl;
                 cout << "+-----------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-            // Выполняем запрос и обрабатываем результаты
+                // Выполняем запрос и обрабатываем результаты
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 data.setId(sqlite3_column_int(stmt, 0));
                 data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
