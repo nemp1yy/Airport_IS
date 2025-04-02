@@ -105,6 +105,242 @@ class database_airport
 
     }
 
+        void updateData() 
+    {
+        inputData();
+        vector<dataAirport> foundRecords;
+        
+        string sql = "SELECT * FROM flights WHERE 1=1";
+        vector<string> conditions;
+
+        if (flight != "-")
+            conditions.push_back("flight LIKE '%' || ? || '%'");
+
+        if (airline != "-")
+            conditions.push_back("airline LIKE '%' || ? || '%'");
+
+        if (departure_from != "-")
+            conditions.push_back("departure_from LIKE '%' || ? || '%'");
+
+        if (destination != "-")
+            conditions.push_back("destination LIKE '%' || ? || '%'");
+
+        if (departure_time_range1 != "-" && departure_time_range2 != "-")
+            conditions.push_back("departure_time BETWEEN ? AND ? ");
+        else if (departure_time_range1 != "-")
+            conditions.push_back("departure_time >= ?");
+        else if (departure_time_range2 != "-")
+            conditions.push_back("departure_time <= ? ");
+
+        if (arrival_time_range1 != "-" && arrival_time_range2 != "-")
+            conditions.push_back("arrival_time BETWEEN ? AND ? ");
+        else if (arrival_time_range1 != "-")
+            conditions.push_back("arrival_time >= ? ");
+        else if (arrival_time_range2 != "-")
+            conditions.push_back("arrival_time <= ? ");
+
+        if (gate != "-")
+            conditions.push_back("gate LIKE '%' || ? || '%'");
+
+        if (status != "-")
+            conditions.push_back("status LIKE '%' || ? || '%'");
+
+        if (aircraft_type != "-")
+            conditions.push_back("aircraft_type LIKE '%' || ? || '%'");
+
+        // Добавляем условия в SQL-запрос
+        for (const auto& condition : conditions) {
+            sql += " AND " + condition;
+        }
+
+        sqlite3_stmt *stmt;
+        if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK) {
+            cerr << "SQL error: " << sqlite3_errmsg(db) << endl;
+            return;
+        }
+
+        auto safe_convert_utf = [](const string& text) -> string {
+            string utf8_text = convertTo_utf8(text);
+            if (utf8_text.empty()) {
+                cerr << "Error: " << text << endl;
+                return "";
+            }
+            return utf8_text;
+        };
+
+        // Связываем параметры с запросом
+        int paramIndex = 1;
+
+        if (flight != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(flight).c_str(), -1, SQLITE_TRANSIENT);
+        
+        if (airline != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(airline).c_str(), -1, SQLITE_TRANSIENT);
+
+        if (departure_from != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_from).c_str(), -1, SQLITE_TRANSIENT);
+
+        if (destination != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(destination).c_str(), -1, SQLITE_TRANSIENT);
+
+        if (departure_time_range1 != "-" && departure_time_range2 != "-") {
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+        } else if (departure_time_range1 != "-") {
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+        } else if (departure_time_range2 != "-") {
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+        }
+
+        if (arrival_time_range1 != "-" && arrival_time_range2 != "-") {
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+        } else if (arrival_time_range1 != "-") {
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+        } else if (arrival_time_range2 != "-") {
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+        }
+
+        if (gate != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(gate).c_str(), -1, SQLITE_TRANSIENT);
+
+        if (status != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(status).c_str(), -1, SQLITE_TRANSIENT);
+
+        if (aircraft_type != "-")
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
+
+        cout << "Поиск по указанным критериям..." << endl;
+        
+        // Выполняем запрос и сохраняем найденные записи
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            dataAirport data;
+            data.setId(sqlite3_column_int(stmt, 0));
+            data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+            data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+            data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+            data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+            data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
+            data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+            data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
+            data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
+            data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
+            
+            foundRecords.push_back(data);
+        }
+        
+        sqlite3_finalize(stmt);
+        
+        // Проверяем, найдены ли записи
+        if (foundRecords.empty()) {
+            cout << "Записи не найдены." << endl;
+            system("pause");
+            return;
+        }
+        
+        // Выводим найденные записи
+        cout << "Найдено " << foundRecords.size() << " записей:" << endl;
+
+        cout << left 
+            << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+        cout << "| " << left << setw(5) << "ID" 
+            << " | " << left << setw(6) << "Рейс" 
+            << " | " << left << setw(19) << "Авиакомпания" 
+            << " | " << left << setw(16) << "Откуда вылет" 
+            << " | " << left << setw(17) << "Пункт назначения"
+            << " | " << left << setw(17) << "Вылет в" 
+            << " | " << left << setw(17) << "Прибывает в" 
+            << " | " << left << setw(4) << "Гейт" 
+            << " | " << left << setw(14) << "Статус" 
+            << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+        cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+
+        for (size_t i = 0; i < foundRecords.size(); ++i) {
+            cout << left << "| " << setw(5) << i + 1 << " ";
+            foundRecords[i].output_convert();
+        }
+
+        cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+        
+        // Предлагаем пользователю выбрать запись для обновления
+        cout << "Введите номер записи, которую хотите обновить, или '0' для отмены: ";
+        int selectedIndex;
+        cin >> selectedIndex;
+        cin.ignore(); // Очищаем буфер после ввода числа
+
+        if (selectedIndex == 0 || selectedIndex < 0 || selectedIndex > static_cast<int>(foundRecords.size())) {
+            cout << "Операция отменена или введен неверный номер." << endl;
+            system("pause");
+            return;
+        }
+
+        // Получаем выбранную запись
+        dataAirport recordToUpdate = foundRecords[selectedIndex - 1];
+        int recordId = stoi(recordToUpdate.getId());
+        
+        // Очищаем экран для ввода новых данных
+        system("cls");
+        
+        cout << "Обновление записи #" << selectedIndex << " (ID: " << recordId << ")" << endl << endl;
+
+        dataAirport airline;
+        airline.table_header();
+        airline.input_table(6);
+        airline.table_footer();
+        
+        // Спрашиваем пользователя о подтверждении
+        cout << "Сохранить изменения? (y/n): ";
+        char confirm;
+        cin >> confirm;
+        
+        if (confirm != 'y' && confirm != 'Y') {
+            cout << "Операция отменена." << endl;
+            system("pause");
+            return;
+        }
+        
+        // Создаем SQL-запрос для обновления данных
+        string updateSql = "UPDATE flights SET "
+                        "departure_time = ?, "
+                        "arrival_time = ?, "
+                        "status = ?, "
+                        "aircraft_type = ?, "
+                        "airline = ?, "
+                        "flight = ?, "
+                        "departure_from = ?, "
+                        "destination = ?, "
+                        "gate = ? "
+                        "WHERE id = ?";
+        
+        sqlite3_stmt *updateStmt;
+        if (sqlite3_prepare_v2(db, updateSql.c_str(), -1, &updateStmt, 0) != SQLITE_OK) {
+            cerr << "SQL error при подготовке запроса на обновление: " << sqlite3_errmsg(db) << endl;
+            return;
+        }
+        
+        // Связываем параметры с запросом
+        sqlite3_bind_text(updateStmt, 1, safe_convert_utf(airline.getDeparture_time()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 2, safe_convert_utf(airline.getArrival_time()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 3, safe_convert_utf(airline.getStatus()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 4, safe_convert_utf(airline.getAircraft_type()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 5, safe_convert_utf(airline.getAirline()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 6, safe_convert_utf(airline.getFlight()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 7, safe_convert_utf(airline.getDeparture_from()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 8, safe_convert_utf(airline.getDestination()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(updateStmt, 9, safe_convert_utf(airline.getGate()).c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(updateStmt, 10, recordId);
+        
+        // Выполняем запрос на обновление
+        if (sqlite3_step(updateStmt) != SQLITE_DONE) {
+            cerr << "SQL error при выполнении запроса на обновление: " << sqlite3_errmsg(db) << endl;
+            cout << "Не удалось обновить запись." << endl;
+        } else {
+            cout << "Запись успешно обновлена." << endl;
+        }
+        
+        sqlite3_finalize(updateStmt);
+    }
+
         bool addData(dataAirport flight) {
             const char* sql = "INSERT INTO flights (departure_time, arrival_time, status, aircraft_type, airline, flight, departure_from, destination, gate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
@@ -146,191 +382,7 @@ class database_airport
         }
         
         
-        // bool updateData()
-        // {   
-        //     inputData();
-        //     vector<dataAirport> foundRecords;
-    
-        //         string sql = "SELECT * FROM flights WHERE 1=1";
-        //         vector<string> conditions;
-
-        //         // Добавляем условия для каждого параметра, если он не равен "-"
-        //         if (flight != "-")
-        //             conditions.push_back("flight like ?");
-
-        //         if (airline != "-")
-        //             conditions.push_back("airline like ?");
-
-        //         if (departure_from != "-")
-        //             conditions.push_back("departure_from like ?");
-
-        //         if (destination != "-")
-        //             conditions.push_back("destination like ?");
-
-        //         if (departure_time_range1 != "-" && departure_time_range2 != "-")
-        //             conditions.push_back("departure_time BETWEEN ? AND ?");
-        //         else if (departure_time_range1 != "-")
-        //             conditions.push_back("departure_time >like ?");
-        //         else if (departure_time_range2 != "-")
-        //             conditions.push_back("departure_time <like ?");
-
-        //         if (arrival_time_range1 != "-" && arrival_time_range2 != "-")
-        //             conditions.push_back("arrival_time BETWEEN ? AND ?");
-        //         else if (arrival_time_range1 != "-")
-        //             conditions.push_back("arrival_time >like ?");
-        //         else if (arrival_time_range2 != "-")
-        //             conditions.push_back("arrival_time <like ?");
-
-        //         if (gate != "-")
-        //             conditions.push_back("gate like ?");
-
-        //         if (status != "-")
-        //             conditions.push_back("status like ?");
-
-        //         if (aircraft_type != "-")
-        //             conditions.push_back("aircraft_type like ?");
-
-        //         // Добавляем условия в SQL-запрос
-        //         for (const auto& condition : conditions) {
-        //             sql += " AND " + condition;
-        //         }
-
-        //         sqlite3_stmt *stmt;
-        //         if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, 0) != SQLITE_OK) {
-        //             cerr << "SQL error: " << sqlite3_errmsg(db) << endl;
-        //             return;
-        //         }
-
-        //         auto safe_convert_utf = [](const string& text) -> string {
-        //             string utf8_text = convertTo_utf8(text);
-        //             if (utf8_text.empty()) {
-        //                 cerr << "Error: " << text << endl;
-        //                 return "";
-        //             }
-        //             return utf8_text;
-        //         };
-
-        //         // Связываем параметры с запросом
-        //         int paramIndex = 1;
-
-        //         if (flight != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(flight).c_str(), -1, SQLITE_TRANSIENT);
-                
-        //         if (airline != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(airline).c_str(), -1, SQLITE_TRANSIENT);
-
-        //         if (departure_from != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_from).c_str(), -1, SQLITE_TRANSIENT);
-
-        //         if (destination != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(destination).c_str(), -1, SQLITE_TRANSIENT);
-
-        //         if (departure_time_range1 != "-" && departure_time_range2 != "-") {
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
-        //         } else if (departure_time_range1 != "-") {
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-        //         } else if (departure_time_range2 != "-") {
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
-        //         }
-
-        //         if (arrival_time_range1 != "-" && arrival_time_range2 != "-") {
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
-        //         } else if (arrival_time_range1 != "-") {
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-        //         } else if (arrival_time_range2 != "-") {
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
-        //         }
-
-        //         if (gate != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(gate).c_str(), -1, SQLITE_TRANSIENT);
-
-        //         if (status != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(status).c_str(), -1, SQLITE_TRANSIENT);
-
-        //         if (aircraft_type != "-")
-        //             sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
-
-        //         // Выполняем запрос и сохраняем найденные записи
-        //         while (sqlite3_step(stmt) == SQLITE_ROW) {
-        //             dataAirport data;
-        //             data.setId(sqlite3_column_int(stmt, 0));
-        //             data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-        //             data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-        //             data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
-        //             data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
-        //             data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
-        //             data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
-        //             data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
-        //             data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
-        //             data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
-                    
-        //             foundRecords.push_back(data);
-        //         }
-                
-
-        //         sqlite3_finalize(stmt);
-                
-        //         // Проверяем, найдены ли записи
-        //         if (foundRecords.empty()) {
-        //             cout << "Записи не найдены." << endl;
-        //             return;
-        //         }
-                
-        //         // Выводим найденные записи
-        //         cout << "Найдено " << foundRecords.size() << " записей:" << endl;
-
-        //         cout << left 
-        //             << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-        //         cout << "| " << left << setw(5) << "ID" 
-        //             << " | " << left << setw(6) << "Рейс" 
-        //             << " | " << left << setw(19) << "Авиакомпания" 
-        //             << " | " << left << setw(16) << "Откуда вылет" 
-        //             << " | " << left << setw(17) << "Пункт назначения"
-        //             << " | " << left << setw(17) << "Вылет в" 
-        //             << " | " << left << setw(17) << "Прибывает в" 
-        //             << " | " << left << setw(4) << "Гейт" 
-        //             << " | " << left << setw(14) << "Статус" 
-        //             << " | " << left << setw(13) << "Тип BC" << " | " << endl;
-        //         cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-
-
-        //         for (size_t i = 0; i < foundRecords.size(); ++i) {
-        //             cout << left << "| " << setw(6) << i + 1 << " ";
-        //             foundRecords[i].output_convert();
-        //         }
-
-        //         cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
-                
-        //         // Предлагаем пользователю выбрать записи для удаления
-        //         cout << "Введите номера записей, которые хотите удалить (через пробел), или '0' для отмены: ";
-        //         string input;
-        //         cin.ignore();
-        //         getline(cin, input);
-                
-        //         if (input == "0") {
-        //             cout << "Операция отменена." << endl;
-        //             return;
-        //         }
-                
-        //         // Парсим введенные номера
-        //         istringstream iss(input);
-        //         vector<int> selectedIndices;
-        //         int index;
-        //         while (iss >> index) {
-        //             if (index >= 1 && index <= static_cast<int>(foundRecords.size())) {
-        //                 selectedIndices.push_back(index);
-        //             } else {
-        //                 cout << "Неверный номер: " << index << ". Игнорируется." << endl;
-        //             }
-        //         }
-                
-        //         if (selectedIndices.empty()) {
-        //             cout << "Не выбрано ни одной действительной записи. Операция отменена." << endl;
-        //             return;
-        //         }
-        // }
+        
 
         void deleteData()
         {
@@ -343,39 +395,39 @@ class database_airport
         vector<string> conditions;
 
         if (flight != "-")
-            conditions.push_back("flight LIKE ?");
+            conditions.push_back("flight LIKE '%' || ? || '%'");
 
         if (airline != "-")
-            conditions.push_back("airline LIKE ?");
+            conditions.push_back("airline LIKE '%' || ? || '%'");
 
         if (departure_from != "-")
-            conditions.push_back("departure_from LIKE ?");
+            conditions.push_back("departure_from LIKE '%' || ? || '%'");
 
         if (destination != "-")
-            conditions.push_back("destination LIKE ?");
+            conditions.push_back("destination LIKE '%' || ? || '%'");
 
         if (departure_time_range1 != "-" && departure_time_range2 != "-")
-            conditions.push_back("departure_time BETWEEN ? AND ?");
+            conditions.push_back("departure_time BETWEEN ? AND ? ");
         else if (departure_time_range1 != "-")
             conditions.push_back("departure_time >= ?");
         else if (departure_time_range2 != "-")
-            conditions.push_back("departure_time <= ?");
+            conditions.push_back("departure_time <= ? ");
 
         if (arrival_time_range1 != "-" && arrival_time_range2 != "-")
-            conditions.push_back("arrival_time BETWEEN ? AND ?");
+            conditions.push_back("arrival_time BETWEEN ? AND ? ");
         else if (arrival_time_range1 != "-")
-            conditions.push_back("arrival_time >= ?");
+            conditions.push_back("arrival_time >= ? ");
         else if (arrival_time_range2 != "-")
-            conditions.push_back("arrival_time <= ?");
+            conditions.push_back("arrival_time <= ? ");
 
         if (gate != "-")
-            conditions.push_back("gate LIKE ?");
+            conditions.push_back("gate LIKE '%' || ? || '%'");
 
         if (status != "-")
-            conditions.push_back("status LIKE ?");
+            conditions.push_back("status LIKE '%' || ? || '%'");
 
         if (aircraft_type != "-")
-            conditions.push_back("aircraft_type LIKE ?");
+            conditions.push_back("aircraft_type LIKE '%' || ? || '%'");
 
         // Добавляем условия в SQL-запрос
         for (const auto& condition : conditions) {
@@ -387,10 +439,6 @@ class database_airport
             cerr << "SQL error: " << sqlite3_errmsg(db) << endl;
             return;
         }
-
-        auto prepare_like = [](const string& text) -> string {
-            return "%" + convertTo_utf8(text) + "%"; // Гарантируем UTF-8
-        };
 
         auto safe_convert_utf = [](const string& text) -> string {
             string utf8_text = convertTo_utf8(text);
@@ -405,45 +453,43 @@ class database_airport
         int paramIndex = 1;
 
         if (flight != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(flight).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(flight).c_str(), -1, SQLITE_TRANSIENT);
         
         if (airline != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(airline).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(airline).c_str(), -1, SQLITE_TRANSIENT);
 
         if (departure_from != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_from).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_from).c_str(), -1, SQLITE_TRANSIENT);
 
         if (destination != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(destination).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(destination).c_str(), -1, SQLITE_TRANSIENT);
 
         if (departure_time_range1 != "-" && departure_time_range2 != "-") {
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
         } else if (departure_time_range1 != "-") {
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
         } else if (departure_time_range2 != "-") {
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
         }
 
         if (arrival_time_range1 != "-" && arrival_time_range2 != "-") {
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
         } else if (arrival_time_range1 != "-") {
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
         } else if (arrival_time_range2 != "-") {
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
         }
 
         if (gate != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(gate).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(gate).c_str(), -1, SQLITE_TRANSIENT);
 
         if (status != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(status).c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(status).c_str(), -1, SQLITE_TRANSIENT);
 
         if (aircraft_type != "-")
-            sqlite3_bind_text(stmt, paramIndex++, prepare_like(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
-
-        cout << "Поиск по: " << prepare_like(airline) << endl;
+            sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
         
         // Выполняем запрос и сохраняем найденные записи
         while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -549,6 +595,7 @@ class database_airport
         void searchData()
         {
             inputData();
+            vector<dataAirport> foundRecords;
 
             dataAirport data;
             string sql = "SELECT * FROM flights WHERE 1=1";
@@ -574,7 +621,7 @@ class database_airport
                 conditions.push_back("departure_time <= ? ");
     
             if (arrival_time_range1 != "-" && arrival_time_range2 != "-")
-                conditions.push_back("arrival_time ? AND ? ");
+                conditions.push_back("arrival_time BETWEEN ? AND ? ");
             else if (arrival_time_range1 != "-")
                 conditions.push_back("arrival_time >= ? ");
             else if (arrival_time_range2 != "-")
@@ -609,86 +656,99 @@ class database_airport
                 return utf8_text;
             };
 
-            auto prepare_like = [](const string& text) -> string {
-                return "%" + convertTo_utf8(text) + "%"; // Гарантируем UTF-8
-            };
-    
             // Связываем параметры с запросом
             int paramIndex = 1;
     
             if (flight != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(flight).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(flight).c_str(), -1, SQLITE_TRANSIENT);
             
             if (airline != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(airline).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(airline).c_str(), -1, SQLITE_TRANSIENT);
     
             if (departure_from != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_from).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_from).c_str(), -1, SQLITE_TRANSIENT);
     
             if (destination != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(destination).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(destination).c_str(), -1, SQLITE_TRANSIENT);
     
             if (departure_time_range1 != "-" && departure_time_range2 != "-") {
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
             } else if (departure_time_range1 != "-") {
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range1).c_str(), -1, SQLITE_TRANSIENT);
             } else if (departure_time_range2 != "-") {
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(departure_time_range2).c_str(), -1, SQLITE_TRANSIENT);
             }
     
             if (arrival_time_range1 != "-" && arrival_time_range2 != "-") {
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
             } else if (arrival_time_range1 != "-") {
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range1).c_str(), -1, SQLITE_TRANSIENT);
             } else if (arrival_time_range2 != "-") {
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(arrival_time_range2).c_str(), -1, SQLITE_TRANSIENT);
             }
     
             if (gate != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(gate).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(gate).c_str(), -1, SQLITE_TRANSIENT);
     
             if (status != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(status).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(status).c_str(), -1, SQLITE_TRANSIENT);
     
             if (aircraft_type != "-")
-                sqlite3_bind_text(stmt, paramIndex++, prepare_like(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, paramIndex++, safe_convert_utf(aircraft_type).c_str(), -1, SQLITE_TRANSIENT);
 
-                cout << "SQL Query: " << sql << endl;
-                cout << "Bound Parameter: [" << prepare_like(flight) << "]" << endl;
-                
+             // Выполняем запрос и сохраняем найденные записи
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            dataAirport data;
+            data.setId(sqlite3_column_int(stmt, 0));
+            data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+            data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+            data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+            data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+            data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
+            data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
+            data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
+            data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
+            data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
+            
+            foundRecords.push_back(data);
+        }
+        
 
-                cout << left 
-                << "+-----------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-                cout  << "| " << left << setw(6) << "Рейс" 
-                << " | " << left << setw(19) << "Авиакомпания" 
-                << " | " << left << setw(16) << "Откуда вылет" 
-                << " | " << left << setw(17) << "Пункт назначения"
-                << " | " << left << setw(17) << "Вылет в" 
-                << " | " << left << setw(17) << "Прибывает в" 
-                << " | " << left << setw(4) << "Гейт" 
-                << " | " << left << setw(14) << "Статус" 
-                << " | " << left << setw(13) << "Тип BC" << " | " << endl;
-                cout << "+-----------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
-                // Выполняем запрос и обрабатываем результаты
-            while (sqlite3_step(stmt) == SQLITE_ROW) {
-                data.setId(sqlite3_column_int(stmt, 0));
-                data.setDeparture_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-                data.setArrival_time(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
-                data.setStatus(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
-                data.setAircraft_type(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
-                data.setAirline(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5)));
-                data.setFlight(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)));
-                data.setDeparture_from(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
-                data.setDestination(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 8)));
-                data.setGate(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 9)));
-                
-                data.output_convert();
-            }
+        sqlite3_finalize(stmt);
+        
+        // Проверяем, найдены ли записи
+        if (foundRecords.empty()) {
+            cout << "Записи не найдены." << endl;
+            return;
+        }
+        
+        // Выводим найденные записи
+        cout << "Найдено " << foundRecords.size() << " записей:" << endl;
 
-            cout << "+-----------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+        cout << left 
+            << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+        cout << "| " << left << setw(5) << "ID" 
+            << " | " << left << setw(6) << "Рейс" 
+            << " | " << left << setw(19) << "Авиакомпания" 
+            << " | " << left << setw(16) << "Откуда вылет" 
+            << " | " << left << setw(17) << "Пункт назначения"
+            << " | " << left << setw(17) << "Вылет в" 
+            << " | " << left << setw(17) << "Прибывает в" 
+            << " | " << left << setw(4) << "Гейт" 
+            << " | " << left << setw(14) << "Статус" 
+            << " | " << left << setw(13) << "Тип BC" << " | " << endl;
+        cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
 
+
+        for (size_t i = 0; i < foundRecords.size(); ++i) {
+            cout << left << "| " << setw(5) << i + 1 << " ";
+            foundRecords[i].output_convert();
+        }
+
+        cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
+        
             sqlite3_finalize(stmt);
         }
 

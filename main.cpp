@@ -37,7 +37,8 @@ int main()
     while (menu)
     {   
         system("cls");
-        cout << "Главное меню" << endl;
+        cout << "Главное меню" << endl
+             << "----------------------------" << endl;
         cout << "1. Показать таблицу" << endl;
         cout << "2. Добавить запись" << endl;
         cout << "3. Добавить несколько записей" << endl;
@@ -97,9 +98,7 @@ int main()
         }
         case 4:
         {
-            // cout << "Введите id для обновления данных: "; cin >> input_id;
-            // airport.input();
-            // db.updateData(airport, input_id);
+            db.updateData();
             break;
         }
         case 5:
