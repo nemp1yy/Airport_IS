@@ -285,7 +285,7 @@ class database_airport
 
         dataAirport airline;
         airline.table_header();
-        airline.input_table(6);
+        airline.input_table(4);
         airline.table_footer();
         
         // Спрашиваем пользователя о подтверждении
@@ -714,9 +714,6 @@ class database_airport
             
             foundRecords.push_back(data);
         }
-        
-
-        sqlite3_finalize(stmt);
         
         // Проверяем, найдены ли записи
         if (foundRecords.empty()) {
