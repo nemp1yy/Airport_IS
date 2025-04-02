@@ -58,10 +58,13 @@ class dataAirport
         cout << "Прибывает в: "; getline(cin, arrival_time);
         cout << "Гейт: "; cin >> gate;
         cout << "Статус: " << endl 
-             << " 1. По рассписанию" << endl
+             << " 1. По раасписанию" << endl
              << " 2. Задержан" << endl
              << " 3. Отменен" << endl
-             << "Ваш вариант: "; cin >> var; status = airport_Status[var-1];
+             << "Ваш вариант: "; cin >> var;  
+
+             if (var <= 3) status = airport_Status[var-1];
+             else cout << "Ошибка! Введено неверное значение. \n Выбрано стандатное значение: 1. По расписанию" << endl;
         cin.get(); cout << "Тип BC: "; getline(cin, aircraft_type);
 
     }
@@ -98,7 +101,7 @@ class dataAirport
         gotoxy(110, 3+count); cout << "| "; cin >> gate;
 
         gotoxy(1, 10+count); cout << "Статус: " << endl 
-            << " 1. По рассписанию" << endl
+            << " 1. По расписанию" << endl
             << " 2. Задержан" << endl
             << " 3. Отменен" << endl
             << "Ваш вариант: "; cin >> var; status = airport_Status[var-1];
