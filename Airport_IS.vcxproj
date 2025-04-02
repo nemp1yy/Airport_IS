@@ -128,7 +128,11 @@
     <ClInclude Include="airport.h" />
     <ClInclude Include="data.h" />
     <ClInclude Include="database.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="sqlite3.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
