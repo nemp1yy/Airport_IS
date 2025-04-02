@@ -1,71 +1,86 @@
+---
+
 # Airport Information System
 
+![Languages](https://img.shields.io/github/languages/top/nemp1yy/Airport_IS)
 ![License](https://img.shields.io/github/license/nemp1yy/Airport_IS)
-![Issues](https://img.shields.io/github/issues/nemp1yy/Airport_IS)
-![Forks](https://img.shields.io/github/forks/nemp1yy/Airport_IS)
-![Stars](https://img.shields.io/github/stars/nemp1yy/Airport_IS)
+![Last Commit](https://img.shields.io/github/last-commit/nemp1yy/Airport_IS)
 
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
+## 🚀 О проекте
 
-## Overview
-The Airport Information System is designed to provide comprehensive information about airport operations. It includes features for managing flight schedules, passenger information, and other essential details required for efficient airport management.
+**Airport Information System** — это система информации об аэропортах, написанная на языках C и C++. Она предоставляет пользователям информацию об аэропортах, рейсах и другую полезную информацию.
 
-## Features
-- **Flight Management:** Schedule, update, and track flights.
-- **Passenger Information:** Manage passenger details and bookings.
-- **Real-time Updates:** Receive real-time updates on flight status.
-- **User-friendly Interface:** Easy-to-use interface for both administrators and passengers.
+## 📋 Содержание
 
-## Installation
-To install and run this project locally, follow these steps:
+- [Airport Information System](#airport-information-system)
+  - [🚀 О проекте](#-о-проекте)
+  - [📋 Содержание](#-содержание)
+  - [🔧 Установка](#-установка)
+  - [💻 Использование](#-использование)
+  - [📂 Структура проекта](#-структура-проекта)
+  - [🚧 Вклад](#-вклад)
+  - [📝 Лицензия](#-лицензия)
+  - [📞 Контакты](#-контакты)
 
-1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/nemp1yy/Airport_IS.git
-    ```
+## 🔧 Установка
 
-2. **Navigate to the project directory:**
-    ```bash
+Для установки и запуска проекта перейдите на страницу [релизов](https://github.com/nemp1yy/Airport_IS/releases) и скачайте последнюю версию.
+
+1. Скачайте архив с релизом и распакуйте его.
+2. Перейдите в директорию проекта:
+    ```sh
     cd Airport_IS
     ```
 
-3. **Install dependencies:**
-    ```bash
-    npm install
+3. Соберите проект:
+    ```sh
+    make
     ```
 
-4. **Start the application:**
-    ```bash
-    npm start
+## 💻 Использование
+
+После установки вы можете запустить программу командой:
+```sh
+./airport_is
+```
+Программа предоставит вам информацию об аэропортах и рейсах.
+
+## 📂 Структура проекта
+
+```plaintext
+Airport_IS/
+├── src/        # Исходный код программы
+├── include/    # Заголовочные файлы
+├── docs/       # Документация проекта
+├── tests/      # Тесты
+├── Makefile    # Makefile для сборки проекта
+└── README.md   # Этот файл
+```
+
+## 🚧 Вклад
+
+Мы приветствуем вклад в развитие проекта! Пожалуйста, следуйте следующим шагам для внесения изменений:
+
+1. Форкните репозиторий.
+2. Создайте новую ветку:
+    ```sh
+    git checkout -b feature/название-функции
     ```
+3. Внесите изменения и зафиксируйте их:
+    ```sh
+    git commit -m 'Добавлена новая функция'
+    ```
+4. Отправьте изменения в удалённый репозиторий:
+    ```sh
+    git push origin feature/название-функции
+    ```
+5. Создайте Pull Request.
 
-## Usage
-After setting up the project, you can use the system to manage airport information. The application provides an intuitive interface to interact with various features.
 
-## Contributing
-Contributions are welcome! Please follow these steps to contribute:
+## 📞 Контакты
 
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature-branch`).
-5. Open a pull request.
-
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-For any questions or suggestions, please contact:
-- **Name:** Your Name
-- **Email:** your.email@example.com
+Если у вас есть вопросы или предложения, пожалуйста, свяжитесь с нами по адресу: [nemp1yy@example.com](mailto:nemp1yy@example.com).
 
 ---
 
-Thank you for using Airport Information System! We hope it serves your needs well.
+p.s. Данная работа является курсовой, поэтому можете делать с ней чё хотите :3
