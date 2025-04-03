@@ -3,7 +3,6 @@
 # Airport Information System
 
 ![Languages](https://img.shields.io/github/languages/top/nemp1yy/Airport_IS)
-![License](https://img.shields.io/github/license/nemp1yy/Airport_IS)
 ![Last Commit](https://img.shields.io/github/last-commit/nemp1yy/Airport_IS)
 
 ## 🚀 О проекте
