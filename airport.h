@@ -4,17 +4,13 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <ctime>
 #include <array>
-#include <chrono>
 #include <sstream>
 #include <Windows.h>
 #include "utils.h"
 
 
 using namespace std;
-using namespace chrono;
-
 class dataAirport
 {
     private:
@@ -44,31 +40,6 @@ class dataAirport
             aircraft_type = "n/a";
         }
     
-
-    void input()
-    {   
-        int var;
-
-        cout << "Рейс: "; cin >> flight;
-        
-        cin.get(); cout << "Авиакомпания: "; getline(cin, airline);
-        cout << "Откуда вылет: "; cin >> departure_from;
-        cout << "Пункт назначения: "; cin >> destination;
-        cin.get(); cout << "Вылет в: "; getline(cin, departure_time);
-        cout << "Прибывает в: "; getline(cin, arrival_time);
-        cout << "Гейт: "; cin >> gate;
-        cout << "Статус: " << endl 
-             << " 1. По раасписанию" << endl
-             << " 2. Задержан" << endl
-             << " 3. Отменен" << endl
-             << "Ваш вариант: "; cin >> var;  
-
-             if (var <= 3) status = airport_Status[var-1];
-             else cout << "Ошибка! Введено неверное значение. \n Выбрано стандатное значение: 1. По расписанию" << endl;
-        cin.get(); cout << "Тип BC: "; getline(cin, aircraft_type);
-
-    }
-
     void table_header()
     {
         cout << left 
@@ -89,7 +60,8 @@ class dataAirport
     {
         cout << "+------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl << endl;
     }
-    void input_table(int count)
+
+    void input(int count)
     {
         int var;
         gotoxy(0,3+count); cout << "| "; cin.get(); cin >> flight;
@@ -121,45 +93,29 @@ class dataAirport
         gotoxy(150, 3+count); cout << "| " << endl; 
     }
 
-
-    void output()
+    void output() const
     {
-        cout << left << setw(8) << flight
-             << left << setw(20) << airline
-             << left << setw(15) << departure_from
-             << left << setw(15) << destination
-             << left << setw(15) << departure_time
-             << left << setw(15) << arrival_time
-             << left << setw(15) << gate
-             << left << setw(15) << status
-             << left << setw(15) << aircraft_type << endl;
+       cout << "| " << setw(7) << convertTo_1251(flight)
+            << " | " << setw(20) << convertTo_1251(airline)
+            << " | " << setw(17) << convertTo_1251(departure_from)
+            << " | " << setw(18) << convertTo_1251(destination)
+            << " | " << setw(18) << convertTo_1251(departure_time)
+            << " | " << setw(18) << convertTo_1251(arrival_time)
+            << " | " << setw(5) << convertTo_1251(gate)
+            << " | " << setw(15) << convertTo_1251(status)
+            << " | " << setw(15) << convertTo_1251(aircraft_type) << "|" << endl;
     }
 
-    void output_convert()
-    {
-            cout 
-             << "| " << setw(7) << convertTo_1251(flight)
-             << " | " << setw(20) << convertTo_1251(airline)
-             << " | " << setw(17) << convertTo_1251(departure_from)
-             << " | " << setw(18) << convertTo_1251(destination)
-             << " | " << setw(18) << convertTo_1251(departure_time)
-             << " | " << setw(18) << convertTo_1251(arrival_time)
-             << " | " << setw(5) << convertTo_1251(gate)
-             << " | " << setw(15) << convertTo_1251(status)
-             << " | " << setw(15) << convertTo_1251(aircraft_type) << "|" << endl;
-    
-    }
-
-    string getId() { return to_string(id); }
-    string getFlight() { return flight; }
-    string getAirline() { return airline; }
-    string getDeparture_from() { return departure_from; }
-    string getDestination() { return destination; }
-    string getDeparture_time() { return departure_time; }
-    string getArrival_time() { return arrival_time; }
-    string getGate() { return gate; }
-    string getStatus() { return status; }
-    string getAircraft_type() { return aircraft_type; }
+    string getId() const { return to_string(id); }
+    string getFlight() const { return flight; }
+    string getAirline() const { return airline; }
+    string getDeparture_from() const { return departure_from; }
+    string getDestination() const { return destination; }
+    string getDeparture_time() const { return departure_time; }
+    string getArrival_time() const { return arrival_time; }
+    string getGate() const { return gate; }
+    string getStatus() const { return status; }
+    string getAircraft_type() const { return aircraft_type; }
 
     void setId(int id) { this->id = id; }
     void setFlight(string flight) { this->flight = flight; }
@@ -171,19 +127,6 @@ class dataAirport
     void setGate(string gate) { this->gate = gate; }
     void setStatus(string status) { this->status = status; }
     void setAircraft_type(string aircraft_type) { this->aircraft_type = aircraft_type; }
-
-    void setAll(string flight, string airline, string departure_from, string destination, string departure_time, string arrival_time, string gate, string status, string aircraft_type, int terminal, int bagBelt)
-    {
-        this->flight = flight;
-        this->airline = airline;
-        this->departure_from = departure_from;
-        this->destination = destination;
-        this->departure_time = departure_time;
-        this->arrival_time = arrival_time;
-        this->gate = gate;  
-        this->status = status;
-        this->aircraft_type = aircraft_type;
-    }
 
 };
 

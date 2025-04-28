@@ -285,7 +285,7 @@ class database_airport
 
         dataAirport airline;
         airline.table_header();
-        airline.input_table(4);
+        airline.input_table(2);
         airline.table_footer();
         
         // Спрашиваем пользователя о подтверждении
@@ -380,9 +380,6 @@ class database_airport
             sqlite3_finalize(stmt);
             return true;
         }
-        
-        
-        
 
         void deleteData()
         {
