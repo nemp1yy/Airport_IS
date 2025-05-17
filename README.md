@@ -1,5 +1,3 @@
-Absolutely! Here’s your improved, more descriptive, and visually appealing README in English, with an expanded usage example and a touch of style:
-
 ---
 
 # ✈️ Airport_IS (Python Branch)
