@@ -75,7 +75,7 @@ while menu:
             
 
         case 6:
-            print("Поиск")
+            print(f"\n {"Поиск записей":8}")
             print("----------------------------" )
             pause()
             system("cls")

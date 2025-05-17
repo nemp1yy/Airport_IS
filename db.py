@@ -3,11 +3,10 @@ from pathlib import Path
 from airport import dataAirport as airp
 from utils import table_header as header
 from utils import table_footer as footer
-from utils import displayFoundRecords as dfr
+from utils import table_header_withID as headerID
 from utils import gotoxy
 from utils import pause
-from datetime import datetime
-from os import system
+from typing import List, Optional
 
 
 
@@ -15,10 +14,8 @@ class airportDB:
     def __init__(self):
         self.db_path = Path('data/data.db')
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.ap = airp()
-
         db_exists = self.db_path.exists()
-
+        
         self.conn = sqlite3.connect(self.db_path)
 
         # Create tables if the database did not exist
@@ -53,32 +50,31 @@ class airportDB:
         rows = cursor.fetchall()
 
         header()
-
         for row in rows:
-            self.ap.departure_time = row[1]
-            self.ap.arrival_time = row[2]
-            self.ap.status = row[3]
-            self.ap.aircraft_type = row[4]
-            self.ap.airline = row[5]
-            self.ap.flight = row[6]
-            self.ap.departure_from = row[7]
-            self.ap.destination = row[8]
-            self.ap.gate = row[9]
-
-
-            self.ap.output()
-            footer()
+            data = airp()
+            data.departure_time = row[1]
+            data.arrival_time = row[2]
+            data.status = row[3]
+            data.aircraft_type = row[4]
+            data.airline = row[5]
+            data.flight = row[6]
+            data.departure_from = row[7]
+            data.destination = row[8]
+            data.gate = row[9]
+            data.output()
+            footer(157)
 
             cursor.close()
 
     def addData(self, count : int):
         header()
-        self.ap.input(count)
-        footer()
+        data = airp()
+        data.input(count)
+        footer(157)
 
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO flights (departure_time, arrival_time, status, aircraft_type, airline, flight, departure_from, destination, gate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                       (self.ap.departure_time, self.ap.arrival_time, self.ap.status, self.ap.aircraft_type, self.ap.airline, self.ap.flight, self.ap.departure_from, self.ap.destination, self.ap.gate,))
+                       (data.departure_time, data.arrival_time, data.status, data.aircraft_type, data.airline, data.flight, data.departure_from, data.destination, data.gate,))
 
         self.conn.commit()
         cursor.close()
@@ -106,58 +102,89 @@ class airportDB:
         sql = "SELECT * FROM flights WHERE 1=1"
         conditions = []
 
-        if (flight != "-"): conditions.append(f"flight LIKE '%' ? '%'", (flight,))6
+        if flight != "-":
+            conditions.append(f"flight LIKE '%{flight}%'")
 
-        if (airline != "-"): conditions.append(f"airline LIKE '%' {airline} '%'")
-        if (departure_from != "-"): conditions.append(f"departure_from LIKE '%' {departure_from} '%'")
-        if (destination != "-"): conditions.append(f"destination LIKE '%' {destination} '%'")
-        if (departure_time_range1 != "-" and departure_time_range2 != "-"): conditions.append(f"departure_time BETWEEN  {departure_time_range1} AND {departure_time_range2}")
-        if (departure_time_range1 != "-"): conditions.append(f"departure_time_range2 >={departure_time_range1}")
-        if (departure_time_range1 != "-"): conditions.append(f"departure_time <= {departure_time_range2}")
-        if (arrival_time_range1 != "-" and arrival_time_range2 != "-"): conditions.append(f"arrival_time BETWEEN  {arrival_time_range1} AND {arrival_time_range2}")
-        if (arrival_time_range1 != "-"): conditions.append(f"arrival_time >= {arrival_time_range1}")
-        if (arrival_time_range2 != "-"): conditions.append(f"arrival_time <= {arrival_time_range2}")
-        if (gate != "-"): conditions.append(f"gate LIKE '%' {gate} '%'")
-        if (status != "-"): conditions.append(f"status LIKE '%' {status} '%'")
-        if (aircraft_type != "-"): conditions.append(f"aircraft_type LIKE '%' {aircraft_type} '%'")
+        if airline != "-":
+            conditions.append(f"airline LIKE '%{airline}%'")
+
+        if departure_from != "-":
+            conditions.append(f"departure_from LIKE '%{departure_from}%'")
+
+        if destination != "-":
+            conditions.append(f"destination LIKE '%{destination}%'")
+
+        if departure_time_range1 != "-" and departure_time_range2 != "-":
+            conditions.append(f"departure_time BETWEEN  {departure_time_range1} AND {departure_time_range2}")
+        elif departure_time_range1 != "-":
+            conditions.append(f"departure_time >= '{departure_time_range1}'")
+        elif departure_time_range2 != "-":
+            conditions.append(f"departure_time <= '{departure_time_range2}'")
+
+        if arrival_time_range1 != "-" and arrival_time_range2 != "-":
+            conditions.append(f"arrival_time BETWEEN  '{arrival_time_range1}' AND '{arrival_time_range2}'")
+        elif arrival_time_range1 != "-":
+            conditions.append(f"arrival_time >= '{arrival_time_range1}'")
+        elif arrival_time_range2 != "-":
+            conditions.append(f"arrival_time <= '{arrival_time_range2}'")
+
+        if gate != "-":
+            conditions.append(f"gate LIKE '%{gate}%'")
+
+        if status != "-":
+            conditions.append(f"status LIKE '%{status}%'")
+
+        if aircraft_type != "-":
+            conditions.append(f"aircraft_type LIKE '%{aircraft_type}%'")
+
 
         for condition in conditions:
             sql+= " AND " + condition
 
+
         cursor = self.conn.cursor()
-        print(sql)
         cursor.execute(sql)
 
         foundRecords = []
 
         rows = cursor.fetchall()
-        for row in rows:
-            self.ap.id = row[0]
-            self.ap.departure_time = row[1]
-            self.ap.arrival_time = row[2]
-            self.ap.status = row[3]
-            self.ap.aircraft_type = row[4]
-            self.ap.airline = row[5]
-            self.ap.flight = row[6]
-            self.ap.departure_from = row[7]
-            self.ap.destination = row[8]
-            self.ap.gate = row[9]
+        for i, row in enumerate(rows):
+            data = airp()
+            data.id = row[0]
+            data.departure_time = row[1]
+            data.arrival_time = row[2]
+            data.status = row[3]
+            data.aircraft_type = row[4]
+            data.airline = row[5]
+            data.flight = row[6]
+            data.departure_from = row[7]
+            data.destination = row[8]
+            data.gate = row[9]
 
-            foundRecords.append(self.ap)
-            cursor.close()
+            foundRecords.append(data)
+
+        cursor.close()
 
         return foundRecords
 
+    def displayFoundRecords(self, foundRecords: List[airp]):
+        if not foundRecords: print("Записи не были найдены."); return
+        else: print(f"Кол-во найденых записей: {len(foundRecords)}")
+
+        headerID()
+        for i, record in enumerate(foundRecords):
+            print(f"| {i + 1:<5}", end=" ")
+            record.output()
+            footer(165)
+
     def searchData(self):
         foundRecords = self.SearchBuildQuery()
-        if not foundRecords: print("Записи не были найдены."); return
-        dfr(foundRecords)
+        self.displayFoundRecords(foundRecords)
         pause()
 
     def deleteData(self):
         foundRecords = self.SearchBuildQuery()
-        if not foundRecords: print("Записи не были найдены."); return
-        dfr(foundRecords)
+        self.displayFoundRecords(foundRecords)
         if not foundRecords: return
 
         user_input = input("Введите номера записей, которые хотите удалить (через пробел), или 0 для отмены: ")
@@ -197,8 +224,7 @@ class airportDB:
 
     def updateData(self):
         foundRecords = self.SearchBuildQuery()
-        if not foundRecords: print("Записи не были найдены."); return
-        dfr(foundRecords)
+        self.displayFoundRecords(foundRecords)
         if not foundRecords: return
 
         user_input = int(input("Введите номер записи, которую хотите удалить, или 0 для отмены: "))
@@ -213,7 +239,7 @@ class airportDB:
         temp_airport = airp
         header()
         temp_airport.input()
-        footer()
+        footer(160)
 
         try:
             cursor.execute("""UPDATE flights SET flights (departure_time = ?, arrival_time = ?, status = ?, 

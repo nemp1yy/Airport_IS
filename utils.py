@@ -5,27 +5,17 @@ def gotoxy(x, y):
     print(f"\033[{y};{x}H", end="")
 
 def table_header():
-    print("+", "-"*165, "+")
+    print("+", "-"*157, "+")
     print(f"| {"Рейс":7} | {"Авиакомпания":20} | {"Откуда вылет":17} | {"Пункт назначения":18} | {"Вылет в":18} | {"Прибывает в":18} | {"Гейт":3} | {"Статус":16} | {"Тип BC":15} |")
-    print("+", "-"*165, "+")
+    print("+", "-"*157, "+")
 
 def table_header_withID():
     print("+", "-" * 165, "+")
     print(f"| {"Код":5} | {"Рейс":7} | {"Авиакомпания":20} | {"Откуда вылет":17} | {"Пункт назначения":18} | {"Вылет в":18} | {"Прибывает в":18} | {"Гейт":3} | {"Статус":16} | {"Тип BC":15} |")
     print("+", "-" * 165, "+")
 
-def table_footer():
-    print("+", "-"*165,"'+")
-
-def displayFoundRecords(foundRecords : list):
-    print(f"Кол-во найденых записей: {len(foundRecords)}")
-
-    table_header_withID()
-
-    for i in range(len(foundRecords)):
-        print(f"| {i+1:5}", end=" ")
-        foundRecords[i].output()
-        table_footer()
+def table_footer(line : int):
+    print("+", "-"*line,"+")
 
 def pause():
     input("\n Введите Enter для продолжения...")
